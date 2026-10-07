@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mope 1v1's — Loader
 // @namespace    https://mope-1v1s.local/
-// @version      1.1.0
+// @version      1.1.1
 // @description  Loader do Mope 1v1's. Busca automaticamente a versão atual do núcleo oficial.
 // @author       Mope 1v1's
 // @homepageURL  https://github.com/cute-hardware/mope-1v1s
@@ -38,6 +38,9 @@
 
   const PREFIX = '[Mope 1v1\'s Loader]';
   const CORE_URL = 'https://raw.githubusercontent.com/cute-hardware/mope-1v1s/main/core/LG-Tracking.core.js';
+  // GitHub's CDN can briefly retain a 404 after a fresh publish. A per-load
+  // query string guarantees that the loader checks the current core build.
+  const CORE_REQUEST_URL = `${CORE_URL}?cacheBust=${Date.now()}`;
   const CACHE_KEY = 'mope-1v1s.core-cache.v1';
   let started = false;
 
@@ -77,7 +80,7 @@
 
   GM_xmlhttpRequest({
     method: 'GET',
-    url: CORE_URL,
+    url: CORE_REQUEST_URL,
     headers: { Accept: 'text/javascript, application/javascript, text/plain;q=0.9, */*;q=0.1' },
     timeout: 15_000,
     onload(response) {
@@ -90,7 +93,7 @@
         }
         return;
       }
-      if (!startCachedCore()) warn(`O GitHub respondeu HTTP ${response.status} e não há um cache válido.`);
+      if (!startCachedCore()) warn(`O GitHub respondeu HTTP ${response.status} para ${CORE_REQUEST_URL} e não há um cache válido.`);
     },
     onerror(error) {
       if (!startCachedCore()) warn('Falha de rede e não há um cache válido.', error);
